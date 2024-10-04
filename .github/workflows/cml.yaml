@@ -1,20 +1,35 @@
 name: model-wine-quality
 on: [push]
+
 jobs:
   run:
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     container: docker://dvcorg/cml-py3:latest
     steps:
-      - uses: actions/checkout@v3
-      - name: cml_run
-        env:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          repository: DataSpoof/project_github_action
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ssh-strict: true
+          persist-credentials: true
+          clean: true
+          sparse-checkout-cone-mode: true
+          fetch-depth: 1
+          fetch-tags: false
+          lfs: false
+          submodules: false
+          set-safe-directory: true
 
-          # Your ML workflow goes here
+      - name: Install dependencies and run model
+        run: |
           pip install -r requirements.txt
           python train.py
           
+      - name: Generate report and publish artifacts
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           echo "## Model metrics" > report.md
           cat metrics.txt >> report.md
           
